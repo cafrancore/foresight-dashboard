@@ -5,6 +5,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 import warnings
+import os
+import tempfile
+
+from definitions_model import analyze_reforms_strategically
 warnings.filterwarnings('ignore')
 
 # Set page configuration
@@ -44,16 +48,29 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def load_and_prepare_data():
+def load_and_prepare_data(uploaded_file=None):
     """Load the classification results and prepare for visualization"""
     try:
-        # Load the processed data
-        df = pd.read_excel("strategic_analysis.xlsx")
-        
+        if os.path.exists("strategic_analysis.xlsx"):
+            df = pd.read_excel("strategic_analysis.xlsx")
+        else:
+            if uploaded_file is None:
+                st.error("Please upload a reforms Excel file to run the analysis.")
+                return None
+
+            with st.spinner("Running strategic analysis..."):
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_input:
+                    tmp_input.write(uploaded_file.getbuffer())
+                    tmp_input_path = tmp_input.name
+
+                tmp_output_path = tmp_input_path.replace(".xlsx", "_strategic.xlsx")
+                analyze_reforms_strategically(tmp_input_path, tmp_output_path)
+                df = pd.read_excel(tmp_output_path)
+
         # Rename 'Country' to 'country' for consistency (if it exists)
         if 'Country' in df.columns and 'country' not in df.columns:
             df.rename(columns={'Country': 'country'}, inplace=True)
-        
+
         # Ensure required columns exist
         required_columns = ['strategic_classification', 'link_type', 'country', 'summary']
         for col in required_columns:
@@ -62,30 +79,13 @@ def load_and_prepare_data():
                     df['link_type'] = 'Unclassified'
                 elif col == 'country':
                     df['country'] = 'Unknown'
-        
+
         return df
     except FileNotFoundError:
-        st.error("Please run the analysis first to generate 'strategic_analysis.xlsx'")
+        st.error("Missing input file. Please upload a reforms Excel file.")
         return None
-    """Load the classification results and prepare for visualization"""
-    try:
-        # Load the processed data
-        df = pd.read_excel("strategic_analysis.xlsx")
-        
-        # Ensure required columns exist
-        required_columns = ['strategic_classification', 'link_type', 'country', 'summary']
-        for col in required_columns:
-            if col not in df.columns:
-                if col == 'link_type':
-                    # If link_type doesn't exist, create a default
-                    df['link_type'] = 'Unclassified'
-                elif col == 'country':
-                    # Try to extract country from other columns or create dummy
-                    df['country'] = 'Unknown'
-        
-        return df
-    except FileNotFoundError:
-        st.error("Please run the analysis first to generate 'strategic_analysis.xlsx'")
+    except Exception as exc:
+        st.error(f"Failed to run analysis: {exc}")
         return None
 
 def create_summary_metrics(df):
@@ -437,10 +437,18 @@ def main():
     st.title("📊 Strategic Foresight: Social Protection Reform Analysis Dashboard")
     st.subheader("Social Protection Digest 2025")
     st.markdown("---")
+
+    st.sidebar.title("📂 Data Input")
+    uploaded_file = st.sidebar.file_uploader(
+        "Upload reforms Excel (.xlsx)",
+        type=["xlsx"],
+        help="The file must include a 'summary' column."
+    )
+    st.sidebar.markdown("---")
     
     # Load data
     with st.spinner("Loading data..."):
-        df = load_and_prepare_data()
+        df = load_and_prepare_data(uploaded_file)
     
     if df is None:
         return
