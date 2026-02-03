@@ -1,0 +1,88 @@
+{
+  "project_name": "foresight-dashboard",
+  "analysis": {
+    "python_files": [
+      {
+        "name": "clasify_reforms.py",
+        "size_kb": 2.9892578125
+      },
+      {
+        "name": "classify.py",
+        "size_kb": 3.330078125
+      },
+      {
+        "name": "dashboard.py",
+        "size_kb": 18.3115234375
+      },
+      {
+        "name": "definitions_model.py",
+        "size_kb": 15.8291015625
+      },
+      {
+        "name": "deployment_agent.py",
+        "size_kb": 18.0927734375
+      }
+    ],
+    "data_files": [
+      "clasify_reforms .xlsx",
+      "classified_reforms.xlsx",
+      "reforms.xlsx",
+      "reformsv1.xlsx",
+      "reform_strategic_scores.xlsx",
+      "strategic_analysis.xlsx"
+    ],
+    "requirements": [
+      "streamlit>=1.28.0",
+      "pandas>=2.0.0",
+      "plotly>=5.17.0",
+      "numpy>=1.24.0",
+      "openpyxl>=3.1.0",
+      "sentence-transformers>=2.2.0",
+      "scikit-learn>=1.3.0"
+    ],
+    "project_size": 59958
+  },
+  "deployment_readiness": {
+    "status": "READY",
+    "files_created": [
+      "Dockerfile",
+      "docker-compose.yml",
+      ".gitignore",
+      "Procfile",
+      ".streamlit/config.toml",
+      "runtime.txt",
+      "DEPLOYMENT_GUIDE.md",
+      "README.md"
+    ],
+    "recommended_platforms": [
+      {
+        "name": "Streamlit Cloud",
+        "effort": "Minimal",
+        "cost": "Free"
+      },
+      {
+        "name": "Railway.app",
+        "effort": "Low",
+        "cost": "$5-50/month"
+      },
+      {
+        "name": "Render",
+        "effort": "Low",
+        "cost": "Free-$7/month"
+      },
+      {
+        "name": "Docker",
+        "effort": "Medium",
+        "cost": "Varies"
+      }
+    ]
+  },
+  "next_steps": [
+    "1. Review DEPLOYMENT_GUIDE.md",
+    "2. Choose deployment platform",
+    "3. Push code to GitHub",
+    "4. Follow platform-specific instructions",
+    "5. Test live application",
+    "6. Share with stakeholders"
+  ]
+}

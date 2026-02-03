@@ -1,0 +1,10 @@
+__pycache__
+*.py[cod]
+.git
+.gitignore
+.DS_Store
+*.xlsx
+*.csv
+venv
+env
+.streamlit/secrets.toml
