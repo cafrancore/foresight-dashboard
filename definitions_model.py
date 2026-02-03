@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer, util
 from sklearn.metrics.pairwise import cosine_similarity
+from functools import lru_cache
 
 # 1. STRATEGIC DEFINITIONS (from your requirements)
 category_definitions = {
@@ -30,15 +31,20 @@ category_definitions = {
     }
 }
 
-# 2. Load model
-model = SentenceTransformer("all-mpnet-base-v2")  # More powerful model for better semantic understanding
+@lru_cache(maxsize=1)
+def get_model():
+    """Load and cache the sentence transformer model."""
+    return SentenceTransformer("all-mpnet-base-v2")
 
-# 3. Encode definitions
-category_embeddings = {}
-for category, details in category_definitions.items():
-    # Combine direct and indirect definitions for comprehensive representation
-    full_definition = f"{details['direct']} {details['indirect']}"
-    category_embeddings[category] = model.encode(full_definition, convert_to_tensor=True)
+@lru_cache(maxsize=1)
+def get_category_embeddings():
+    """Encode and cache category definitions."""
+    model = get_model()
+    category_embeddings = {}
+    for category, details in category_definitions.items():
+        full_definition = f"{details['direct']} {details['indirect']}"
+        category_embeddings[category] = model.encode(full_definition, convert_to_tensor=True)
+    return category_embeddings
 
 # 4. Enhanced classification function
 def classify_reform_strategically(text, threshold=0.3):
@@ -61,6 +67,9 @@ def classify_reform_strategically(text, threshold=0.3):
             "all_scores": {cat: 0.0 for cat in category_definitions.keys()}
         }
     
+    model = get_model()
+    category_embeddings = get_category_embeddings()
+
     # Encode the reform text
     text_embedding = model.encode(text, convert_to_tensor=True)
     
@@ -116,6 +125,9 @@ def classify_reform_multi_label(text, threshold=0.25):
     if pd.isna(text) or not text.strip():
         return []
     
+    model = get_model()
+    category_embeddings = get_category_embeddings()
+
     text_embedding = model.encode(text, convert_to_tensor=True)
     
     matches = []

@@ -53,6 +53,9 @@ def load_and_prepare_data(uploaded_file=None):
     try:
         if os.path.exists("strategic_analysis.xlsx"):
             df = pd.read_excel("strategic_analysis.xlsx")
+            with open("strategic_analysis.xlsx", "rb") as analysis_file:
+                st.session_state["analysis_bytes"] = analysis_file.read()
+                st.session_state["analysis_filename"] = "strategic_analysis.xlsx"
         else:
             if uploaded_file is None:
                 st.error("Please upload a reforms Excel file to run the analysis.")
@@ -66,6 +69,9 @@ def load_and_prepare_data(uploaded_file=None):
                 tmp_output_path = tmp_input_path.replace(".xlsx", "_strategic.xlsx")
                 analyze_reforms_strategically(tmp_input_path, tmp_output_path)
                 df = pd.read_excel(tmp_output_path)
+                with open(tmp_output_path, "rb") as analysis_file:
+                    st.session_state["analysis_bytes"] = analysis_file.read()
+                    st.session_state["analysis_filename"] = "strategic_analysis.xlsx"
 
         # Rename 'Country' to 'country' for consistency (if it exists)
         if 'Country' in df.columns and 'country' not in df.columns:
@@ -444,6 +450,13 @@ def main():
         type=["xlsx"],
         help="The file must include a 'summary' column."
     )
+    if "analysis_bytes" in st.session_state:
+        st.sidebar.download_button(
+            label="Download full analysis (.xlsx)",
+            data=st.session_state["analysis_bytes"],
+            file_name=st.session_state.get("analysis_filename", "strategic_analysis.xlsx"),
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     st.sidebar.markdown("---")
     
     # Load data
