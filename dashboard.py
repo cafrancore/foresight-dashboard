@@ -53,11 +53,13 @@ def load_and_prepare_data(uploaded_file=None):
     try:
         if os.path.exists("strategic_analysis.xlsx"):
             df = pd.read_excel("strategic_analysis.xlsx")
-        else:
-            if uploaded_file is None:
-                st.error("Please upload a reforms Excel file to run the analysis.")
-                return None
-
+        # Local mode: check if reforms.xlsx exists and run analysis automatically
+        elif os.path.exists("reforms.xlsx") and uploaded_file is None:
+            with st.spinner("Running strategic analysis on reforms.xlsx..."):
+                analyze_reforms_strategically("reforms.xlsx", "strategic_analysis.xlsx")
+                df = pd.read_excel("strategic_analysis.xlsx")
+        # Cloud mode: require file upload
+        elif uploaded_file is not None:
             with st.spinner("Running strategic analysis..."):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_input:
                     tmp_input.write(uploaded_file.getbuffer())
@@ -66,6 +68,9 @@ def load_and_prepare_data(uploaded_file=None):
                 tmp_output_path = tmp_input_path.replace(".xlsx", "_strategic.xlsx")
                 analyze_reforms_strategically(tmp_input_path, tmp_output_path)
                 df = pd.read_excel(tmp_output_path)
+        else:
+            st.error("Please upload a reforms Excel file to run the analysis.")
+            return None
 
         # Rename 'Country' to 'country' for consistency (if it exists)
         if 'Country' in df.columns and 'country' not in df.columns:
