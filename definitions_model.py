@@ -6,27 +6,45 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 1. STRATEGIC DEFINITIONS (from your requirements)
 category_definitions = {
     "Climate Change": {
-        "direct": "Climate change threatens livelihoods through environmental degradation, rising sea levels and extreme weather events. Direct links refer to interventions explicitly designed to anticipate, absorb, or adapt to climate impacts. These include adaptive social protection, climate risk insurance, anticipatory cash transfers, and public works for resilience.",
-        "indirect": "Indirect links capture reforms that strengthen households' ability to cope with climate-induced stresses. Examples include food security programmes during crop failures, social insurance extensions to informal workers exposed to heat stress, or public works enhancing infrastructure in vulnerable areas.",
+        "direct": "Climate change threatens livelihoods through environmental degradation, rising sea levels, and extreme weather events. Direct links include reforms explicitly designed to anticipate, absorb, and adapt to climate impacts, such as adaptive social protection, climate risk insurance, anticipatory cash transfers, and resilience-focused public works.",
+        "indirect": "Indirect links include reforms that strengthen households' coping capacity under climate stress, such as food security programmes during crop failures, social insurance expansion for informal workers exposed to heat stress, and infrastructure-oriented public works in vulnerable areas.",
         "keywords": ["climate adaptation", "resilience", "environmental", "extreme weather", "sea levels", "drought", "flood", "displacement", "climate insurance", "anticipatory", "adaptive social protection"]
     },
-    
+
     "Demographic Change": {
-        "direct": " ageing populations, migration, and changing family structures create new pressures. Direct measures include pension reforms, long-term care insurance (LTCI), schemes covering refugees/migrants, track ageing and migration flows.",
-        "indirect": "Indirect measures complement these by formalizing migrant employment, developing the care economy, promoting intergenerational solidarity, gender-balanced caregiving, extending working lives and reskilling of older workers.",
+        "direct": "Ageing populations, migration, and changing family structures create new social protection pressures. Direct measures include pension reforms, long-term care insurance (LTCI), schemes covering refugees and migrants, and systems that track ageing and migration flows.",
+        "indirect": "Indirect measures include formalizing migrant employment, developing the care economy, promoting intergenerational solidarity and gender-balanced caregiving, extending working lives, and reskilling older workers.",
         "keywords": ["ageing", "migration", "dependency", "pension", "long-term care", "refugees", "fertility", "urbanization", "displaced", "intergenerational"]
     },
-    
+
     "Digital Technology": {
-        "direct": "Explicit digital social protection reforms: deployment of chatbots/virtual assistants, single window services; rollout of digital ID/eKYC, mobile G2P payments, interoperable MIS/registries; application of AI/ML for targeting, deduplication, fraud detection, and case management.",
-        "indirect": "Indirect changes: stronger data protection and privacy rules, algorithmic governance (fairness, explainability, audits), verification/trust infrastructure (e.g., blockchain, verifiable credentials), and digital inclusion policies to prevent exclusion and rising inequality.",
+        "direct": "Direct digital social protection reforms include deployment of chatbots and virtual assistants, single-window services, digital ID and eKYC rollout, mobile G2P payments, interoperable MIS and registries, and use of AI/ML for targeting, deduplication, fraud detection, and case management.",
+        "indirect": "Indirect reforms include stronger data protection and privacy rules, algorithmic governance (fairness, explainability, and audits), trust infrastructure such as verifiable credentials or blockchain, and digital inclusion policies to prevent exclusion and inequality.",
         "keywords": ["digital ID", "mobile payments", "interoperable", "AI", "data protection", "privacy", "cybersecurity", "algorithmic", "digital inclusion", "blockchain"]
     },
-    
+
     "Shifting Nature of Work": {
-        "direct": "Direct policy changes targeting new forms of employment: extending social security to platform and gig workers, portable benefits systems, digital contribution mechanisms, regulation of digital labor platforms, or remote work legislation.",
-        "indirect": "Indirect policies: recognition of new categories of workers (e.g., crowd workers, freelancers), active labor market policies (ALMPs) for reskilling/upskilling, integration of digital literacy into education, remote work visa programmes, and education reforms aligning curricula with emerging job profiles.",
+        "direct": "Direct policy changes target new forms of employment, including social security extension to platform and gig workers, portable benefits, digital contribution mechanisms, regulation of digital labor platforms, and remote work legislation.",
+        "indirect": "Indirect measures include recognition of new worker categories (crowd workers and freelancers), active labor market policies for reskilling and upskilling, integration of digital literacy into education, remote work visa programmes, and curriculum reforms aligned to emerging job profiles.",
         "keywords": ["gig work", "platform workers", "remote work", "portable benefits", "reskilling", "upskilling", "labor platforms", "freelancers", "digital skills", "future of work"]
+    },
+
+    "Public Debt Expansion": {
+        "direct": "Direct reforms strengthen the architecture and financial sustainability of social security systems. Measures include expanding contributory coverage to excluded workers and groups, improving fraud detection in social security contributions, strengthening governance and investment strategies of reserve funds to improve funding ratios, improving financing forecasts, and adopting adaptive social protection financing that anticipates demographic and economic shocks.",
+        "indirect": "Indirect reforms improve the enabling environment for participation and financing. Measures include simplifying administrative procedures, enabling contribution and tax payments through single portals or mobile applications, providing enrollment subsidies such as Monotributo or Monotax schemes, promoting formalization, increasing tax revenues, reducing illicit financial flows, and using environmental taxes (carbon taxes, fuel excise, emissions trading revenues) to generate fiscal space.",
+        "keywords": ["public debt", "fiscal space", "social protection financing", "contributory schemes", "reserve funds", "funding ratio", "fraud detection", "monotributo", "monotax", "formalization", "tax revenue", "illicit financial flows", "carbon tax", "fuel excise", "emissions trading"]
+    },
+
+    "Changes in Global Order": {
+        "direct": "Direct reforms in a fragmented geopolitical context focus on continuity of social protection operations despite weaker multilateral engagement. Measures include strengthening domestic and UN-local coordination mechanisms, reducing dependency on external implementation support, and improving inter-agency operational frameworks.",
+        "indirect": "Indirect reforms sustain financing and cooperation by adapting to geopolitical fragmentation through diversified bilateral, regional, and plurilateral partnerships, and expanded strategic alliances beyond traditional development partners.",
+        "keywords": ["geopolitical fragmentation", "global order", "multilateralism", "bilateral cooperation", "regional partnerships", "plurilateral", "strategic alliances", "implementation capacity", "coordination mechanisms", "development partners"]
+    },
+
+    "Regional Conflicts": {
+        "direct": "Direct reforms in conflict contexts strengthen the humanitarian-development-peace (HDP) nexus and continuity of protection. Measures include aligning humanitarian and social protection actors, investing in anticipatory capacity, establishing early warning systems, deploying scalable cash transfer programmes, and using pre-agreed financing triggers for rapid expansion during conflict-induced displacement. Long-term forced migration strategies aligned with human rights standards are also included.",
+        "indirect": "Indirect reforms strengthen the broader governance ecosystem in fragile settings through stronger intergovernmental and multi-agency coordination across security, humanitarian, development, and social sectors, and partnerships with civil society and international organizations to maintain service delivery when institutions are weakened.",
+        "keywords": ["regional conflict", "forced displacement", "forced migration", "HDP nexus", "humanitarian", "anticipatory action", "early warning", "scalable cash transfers", "financing triggers", "fragile contexts", "multi-agency coordination", "civil society partnerships"]
     }
 }
 
@@ -36,8 +54,9 @@ model = SentenceTransformer("all-mpnet-base-v2")  # More powerful model for bett
 # 3. Encode definitions
 category_embeddings = {}
 for category, details in category_definitions.items():
-    # Combine direct and indirect definitions for comprehensive representation
-    full_definition = f"{details['direct']} {details['indirect']}"
+    # Combine direct/indirect text plus keywords for stronger semantic anchors
+    keywords_text = " ".join(details.get("keywords", []))
+    full_definition = f"{details['direct']} {details['indirect']} Keywords: {keywords_text}"
     category_embeddings[category] = model.encode(full_definition, convert_to_tensor=True)
 
 # 4. Enhanced classification function
@@ -75,7 +94,6 @@ def classify_reform_strategically(text, threshold=0.3):
     best_score = similarities[best_category]
     
     # Determine if direct or indirect link based on semantic similarity
-    # to specific parts of definition
     direct_embedding = model.encode(category_definitions[best_category]["direct"], convert_to_tensor=True)
     indirect_embedding = model.encode(category_definitions[best_category]["indirect"], convert_to_tensor=True)
     
