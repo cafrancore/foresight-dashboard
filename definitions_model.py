@@ -212,6 +212,15 @@ def analyze_reforms_strategically(input_file="reforms.xlsx", output_file="strate
     df["work_score"] = classification_details.apply(
         lambda x: (x.get("all_scores") or {}).get("Shifting Nature of Work", 0) if isinstance(x, dict) else 0
     )
+    df["public_debt_score"] = classification_details.apply(
+        lambda x: (x.get("all_scores") or {}).get("Public Debt Expansion", 0) if isinstance(x, dict) else 0
+    )
+    df["global_order_score"] = classification_details.apply(
+        lambda x: (x.get("all_scores") or {}).get("Changes in Global Order", 0) if isinstance(x, dict) else 0
+    )
+    df["regional_conflicts_score"] = classification_details.apply(
+        lambda x: (x.get("all_scores") or {}).get("Regional Conflicts", 0) if isinstance(x, dict) else 0
+    )
     
     # Flag reforms that address multiple trends
     df["addresses_multiple_trends"] = df["multi_label_classification"].apply(len) > 1
@@ -309,6 +318,9 @@ def batch_strategic_analysis(df):
             "demographic_relevance": classification["all_scores"].get("Demographic Change", 0),
             "digital_relevance": classification["all_scores"].get("Digital Technology", 0),
             "work_relevance": classification["all_scores"].get("Shifting Nature of Work", 0),
+            "public_debt_relevance": classification["all_scores"].get("Public Debt Expansion", 0),
+            "global_order_relevance": classification["all_scores"].get("Changes in Global Order", 0),
+            "regional_conflicts_relevance": classification["all_scores"].get("Regional Conflicts", 0),
             "is_anticipatory": "Yes" if classification["link_type"] == "Direct" else "No"
         })
     
