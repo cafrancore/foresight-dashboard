@@ -51,15 +51,8 @@ st.markdown("""
 def load_and_prepare_data(uploaded_file=None):
     """Load the classification results and prepare for visualization"""
     try:
-        if os.path.exists("strategic_analysis.xlsx"):
-            df = pd.read_excel("strategic_analysis.xlsx")
-        # Local mode: check if reforms.xlsx exists and run analysis automatically
-        elif os.path.exists("reforms.xlsx") and uploaded_file is None:
-            with st.spinner("Running strategic analysis on reforms.xlsx..."):
-                analyze_reforms_strategically("reforms.xlsx", "strategic_analysis.xlsx")
-                df = pd.read_excel("strategic_analysis.xlsx")
-        # Cloud mode: require file upload
-        elif uploaded_file is not None:
+        # Cloud mode: uploaded file should always take priority
+        if uploaded_file is not None:
             with st.spinner("Running strategic analysis..."):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_input:
                     tmp_input.write(uploaded_file.getbuffer())
@@ -68,6 +61,13 @@ def load_and_prepare_data(uploaded_file=None):
                 tmp_output_path = tmp_input_path.replace(".xlsx", "_strategic.xlsx")
                 analyze_reforms_strategically(tmp_input_path, tmp_output_path)
                 df = pd.read_excel(tmp_output_path)
+        elif os.path.exists("strategic_analysis.xlsx"):
+            df = pd.read_excel("strategic_analysis.xlsx")
+        # Local mode: check if reforms.xlsx exists and run analysis automatically
+        elif os.path.exists("reforms.xlsx") and uploaded_file is None:
+            with st.spinner("Running strategic analysis on reforms.xlsx..."):
+                analyze_reforms_strategically("reforms.xlsx", "strategic_analysis.xlsx")
+                df = pd.read_excel("strategic_analysis.xlsx")
         else:
             st.error("Please upload a reforms Excel file to run the analysis.")
             return None
@@ -192,12 +192,17 @@ def create_link_type_distribution(df):
     # Get unique categories
     categories = melted_data['strategic_classification'].unique()
     
-    # Create subplots
+    # Create subplots dynamically based on number of categories
+    num_categories = len(categories)
+    cols = 2
+    rows = int(np.ceil(num_categories / cols))
+    specs = [[{'type': 'domain'} for _ in range(cols)] for _ in range(rows)]
+
     fig = make_subplots(
-        rows=2, cols=2,
-        specs=[[{'type':'domain'}, {'type':'domain'}],
-               [{'type':'domain'}, {'type':'domain'}]],
-        subplot_titles=categories
+        rows=rows,
+        cols=cols,
+        specs=specs,
+        subplot_titles=list(categories)
     )
     
     colors = {'Direct': '#2E86AB', 'Indirect': '#A23B72', 'Weak/Unclear': '#F18F01', 'None': '#C73E1D'}
